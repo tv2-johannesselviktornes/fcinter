@@ -5,8 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Inter Club Norvegia - Offisiell norsk supporterklubb for F.C. Internazionale Milano</title>
   
-  <!-- Essential styling with proper centering -->
   <style>
+    /* Font loading with correct paths */
+    @font-face {
+      font-family: Inter;
+      font-style: normal;
+      font-weight: 300 900;
+      font-display: swap;
+      src: url('/fonts/Inter-VariableFont_slnt,wght.woff2') format('woff2');
+      font-stretch: normal;
+    }
+    
+    @font-face {
+      font-family: Cardo;
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('/fonts/cardo_normal_400.woff2') format('woff2');
+    }
+    
+    @font-face {
+      font-family: Cardo;
+      font-style: italic;
+      font-weight: 400;
+      font-display: swap;
+      src: url('/fonts/cardo_italic_400.woff2') format('woff2');
+    }
+    
+    @font-face {
+      font-family: Cardo;
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('/fonts/cardo_normal_700.woff2') format('woff2');
+    }
+    
     /* Basic styles for structure, typography, and colors */
     body {
       font-family: "Inter", sans-serif;
@@ -22,8 +55,15 @@
       padding: 0 min(6.5rem, 8vw);
     }
     
-    header, footer {
+    header {
       padding: 20px 0;
+      background-color: #ffffff;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    footer {
+      padding: 40px 0 20px;
+      border-top: 1px solid #f0f0f0;
     }
     
     .site-header {
@@ -38,22 +78,86 @@
       gap: 1rem;
     }
     
-    nav ul {
+    .site-title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .site-title a {
+      text-decoration: none;
+      color: #111111;
+    }
+    
+    .logo-link img {
+      display: block;
+    }
+    
+    /* Navigation styling to match original */
+    .main-navigation {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .nav-menu {
       display: flex;
       list-style: none;
-      gap: 1rem;
+      gap: 1.5rem;
       padding: 0;
       margin: 0;
     }
     
-    nav a {
+    .nav-menu li {
+      position: relative;
+    }
+    
+    .nav-menu a {
       text-decoration: none;
       color: #111111;
       font-weight: 500;
+      font-size: 0.9rem;
+      padding: 0.6rem 0;
+      display: block;
+      transition: color 0.3s;
     }
     
-    nav a:hover {
+    .nav-menu a:hover {
       text-decoration: underline;
+      color: #636363;
+    }
+    
+    .nav-menu a[aria-current="page"] {
+      font-weight: 600;
+      position: relative;
+    }
+    
+    .nav-menu a[aria-current="page"]:after {
+      content: "";
+      display: block;
+      height: 2px;
+      width: 100%;
+      background-color: currentColor;
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+    }
+    
+    /* Mobile menu button */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+    
+    .menu-toggle span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background-color: #111111;
+      margin: 5px 0;
+      transition: transform 0.3s, opacity 0.3s;
     }
     
     h1, h2, h3, h4, h5, h6 {
@@ -69,8 +173,8 @@
     
     .content {
       padding: 3rem 0;
-      max-width: 620px;  /* This matches your original content width */
-      margin: 0 auto;    /* This centers the content */
+      max-width: 620px;
+      margin: 0 auto;
     }
     
     .footer-columns {
@@ -80,6 +184,16 @@
     
     .footer-column {
       flex: 1;
+    }
+    
+    .footer-column:first-child {
+      flex: 0 0 30%;
+    }
+    
+    .site-tagline {
+      color: #636363;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
     }
     
     pre {
@@ -92,34 +206,34 @@
     /* Responsive navigation */
     @media (max-width: 768px) {
       .site-header {
-        flex-direction: column;
+        flex-wrap: wrap;
       }
       
-      nav ul {
+      .main-navigation {
+        flex-basis: 100%;
+        margin-top: 1rem;
+      }
+      
+      .menu-toggle {
+        display: block;
+        position: absolute;
+        right: min(6.5rem, 8vw);
+        top: 20px;
+      }
+      
+      .nav-menu {
+        display: none;
         flex-direction: column;
+        width: 100%;
+      }
+      
+      .nav-menu.active {
+        display: flex;
       }
       
       .footer-columns {
         flex-direction: column;
       }
-    }
-    
-    /* Font loading for Cardo and Inter */
-    @font-face {
-      font-family: Inter;
-      font-style: normal;
-      font-weight: 300 900;
-      font-display: swap;
-      src: url('/wp-content/themes/twentytwentyfour/assets/fonts/inter/Inter-VariableFont_slnt,wght.woff2') format('woff2');
-      font-stretch: normal;
-    }
-    
-    @font-face {
-      font-family: Cardo;
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-      src: url('/wp-content/themes/twentytwentyfour/assets/fonts/cardo/cardo_normal_400.woff2') format('woff2');
     }
   </style>
   
@@ -139,8 +253,15 @@
             <p class="site-title"><a href="/">Inter Club Norvegia</a></p>
           </div>
         </div>
-        <nav>
-          <ul>
+        
+        <button class="menu-toggle" aria-expanded="false" aria-controls="primary-menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        
+        <nav class="main-navigation">
+          <ul class="nav-menu" id="primary-menu">
             <li><a href="/billetter/">Billetter</a></li>
             <li><a href="/bli-medlem/" aria-current="page">Bli medlem</a></li>
             <li><a href="/om-inter-club-norvegia/">Om Inter Club Norvegia</a></li>
@@ -178,7 +299,7 @@
         </div>
         <div class="footer-column">
           <nav>
-            <ul>
+            <ul class="nav-menu">
               <li><a href="/billetter/">Billetter</a></li>
               <li><a href="/bli-medlem/">Bli medlem</a></li>
               <li><a href="/om-inter-club-norvegia/">Om Inter Club Norvegia</a></li>
@@ -188,5 +309,21 @@
       </div>
     </footer>
   </div>
+  
+  <!-- Simple JavaScript for mobile menu toggle -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuToggle = document.querySelector('.menu-toggle');
+      const navMenu = document.querySelector('.nav-menu');
+      
+      if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', function() {
+          navMenu.classList.toggle('active');
+          menuToggle.setAttribute('aria-expanded', 
+            menuToggle.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+        });
+      }
+    });
+  </script>
 </body>
 </html>
