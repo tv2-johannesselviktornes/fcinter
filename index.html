@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Inter Club Norvegia - Offisiell norsk supporterklubb for F.C. Internazionale Milano</title>
   
-  <!-- Essential styling - consider moving to external CSS file -->
+  <!-- Essential styling with proper centering -->
   <style>
     /* Basic styles for structure, typography, and colors */
     body {
@@ -42,6 +42,8 @@
       display: flex;
       list-style: none;
       gap: 1rem;
+      padding: 0;
+      margin: 0;
     }
     
     nav a {
@@ -60,8 +62,15 @@
       line-height: 1.2;
     }
     
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
     .content {
       padding: 3rem 0;
+      max-width: 620px;  /* This matches your original content width */
+      margin: 0 auto;    /* This centers the content */
     }
     
     .footer-columns {
@@ -73,6 +82,13 @@
       flex: 1;
     }
     
+    pre {
+      background-color: #f0f0f0;
+      padding: 1rem;
+      border-radius: 5px;
+      overflow: auto;
+    }
+    
     /* Responsive navigation */
     @media (max-width: 768px) {
       .site-header {
@@ -81,8 +97,29 @@
       
       nav ul {
         flex-direction: column;
-        padding: 0;
       }
+      
+      .footer-columns {
+        flex-direction: column;
+      }
+    }
+    
+    /* Font loading for Cardo and Inter */
+    @font-face {
+      font-family: Inter;
+      font-style: normal;
+      font-weight: 300 900;
+      font-display: swap;
+      src: url('/wp-content/themes/twentytwentyfour/assets/fonts/inter/Inter-VariableFont_slnt,wght.woff2') format('woff2');
+      font-stretch: normal;
+    }
+    
+    @font-face {
+      font-family: Cardo;
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('/wp-content/themes/twentytwentyfour/assets/fonts/cardo/cardo_normal_400.woff2') format('woff2');
     }
   </style>
   
