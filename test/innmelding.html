@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="nb-NO">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inter Club Norvegia - Offisiell norsk supporterklubb for F.C. Internazionale Milano</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="/bilder/logo-100x100.png" sizes="32x32">
+  <link rel="icon" href="/bilder/logo-300x300.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/bilder/logo-300x300.png">
+</head>
+  
+<body>
+  <div class="site-container">
+    <header>
+      <div class="site-header">
+        <div class="site-branding">
+          <a href="/" class="logo-link">
+            <img width="60" height="60" src="/bilder/logo.png" alt="Inter Club Norvegia">
+          </a>
+          <div>
+            <p class="site-title"><a href="/">Inter Club Norvegia</a></p>
+          </div>
+        </div>
+        
+        <button class="menu-toggle" aria-expanded="false" aria-controls="primary-menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        
+        <nav class="main-navigation">
+          <ul class="nav-menu" id="primary-menu">
+            <li><a href="/billetter/">Billetter</a></li>
+            <li><a href="/bli-medlem/" aria-current="page">Bli medlem</a></li>
+            <li><a href="/om-inter-club-norvegia/">Om Inter Club Norvegia</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    
+    <main>
+      <div class="content">
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdEGU0SMtaiRRHFJbGoXAc7wREGVSfmbheIxErvkrdTf8698w/viewform?embedded=true" width="640" height="846" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+      </div>
+    </main>
+    
+    <footer>
+      <div class="footer-columns">
+        <div class="footer-column">
+          <div>
+            <a href="/" class="logo-link">
+              <img width="20" height="20" src="/bilder/logo.png" alt="Inter Club Norvegia">
+            </a>
+            <p class="site-title">Inter Club Norvegia</p>
+            <p class="site-tagline">Offisiell norsk supporterklubb for F.C. Internazionale Milano</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+  
+  <!-- Simple JavaScript for mobile menu toggle -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuToggle = document.querySelector('.menu-toggle');
+      const navMenu = document.querySelector('.nav-menu');
+      
+      if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', function() {
+          navMenu.classList.toggle('active');
+          menuToggle.setAttribute('aria-expanded', 
+            menuToggle.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
