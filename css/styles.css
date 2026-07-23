@@ -196,16 +196,33 @@
     }
     
     /* Native signup form */
+    .form-required-note {
+      color: #636363;
+      font-size: 0.85rem;
+    }
+
+    .payment-info {
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      font-size: 0.95rem;
+    }
+
+    .payment-info p {
+      margin: 0.3rem 0;
+    }
+
+    .field-help {
+      color: #636363;
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
     .signup-form {
       display: flex;
       flex-direction: column;
       gap: 1.1rem;
       margin-top: 2rem;
-    }
-
-    .form-row {
-      display: flex;
-      gap: 1.1rem;
     }
 
     .form-field {
@@ -215,10 +232,6 @@
       gap: 0.35rem;
     }
 
-    .form-field--small {
-      flex: 0 0 8rem;
-    }
-
     .form-field label {
       font-size: 0.9rem;
       font-weight: 500;
@@ -226,7 +239,8 @@
 
     .form-field input[type="text"],
     .form-field input[type="email"],
-    .form-field input[type="tel"] {
+    .form-field input[type="tel"],
+    .form-field input[type="date"] {
       font-family: inherit;
       font-size: 1rem;
       padding: 0.6rem 0.75rem;
@@ -315,16 +329,6 @@
       width: 1px;
       height: 1px;
       overflow: hidden;
-    }
-
-    @media (max-width: 600px) {
-      .form-row {
-        flex-direction: column;
-      }
-
-      .form-field--small {
-        flex: 1;
-      }
     }
 
     /* Responsive navigation */

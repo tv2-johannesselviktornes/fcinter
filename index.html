@@ -43,51 +43,47 @@
     
     <main>
       <div class="content">
-        <h1>Bli medlem</h1>
+        <h1>Innmelding Inter Club Norvegia 2026/27</h1>
+
+        <p>Her kan du melde deg inn i Inter Club Norvegia.</p>
+        <p>Medlemsskapet for sesongen 2026/27 gir deg fine fordeler som forkjøpsrett på billetter til alle Inter-kamper samt 10&nbsp;% rabatt i Inters nettbutikk og fysiske butikker i Milano.</p>
+        <p>I tillegg får du supporterpakken, for ikke å glemme mye sosialt fellesskap på våre turer og samlinger!</p>
+        <p class="form-required-note">* indikerer at spørsmålet er obligatorisk</p>
 
         <div id="signup-banner" class="form-banner" hidden></div>
 
         <form id="signup-form" class="signup-form" action="/api/signup" method="post" novalidate>
-          <div class="form-row">
-            <div class="form-field">
-              <label for="firstName">Fornavn *</label>
-              <input type="text" id="firstName" name="firstName" autocomplete="given-name" required maxlength="100">
-              <p class="field-error" id="firstName-error"></p>
-            </div>
-            <div class="form-field">
-              <label for="lastName">Etternavn *</label>
-              <input type="text" id="lastName" name="lastName" autocomplete="family-name" required maxlength="100">
-              <p class="field-error" id="lastName-error"></p>
-            </div>
-          </div>
-
           <div class="form-field">
-            <label for="email">E-post *</label>
-            <input type="email" id="email" name="email" autocomplete="email" required maxlength="254">
+            <label for="email">E-postadresse *</label>
+            <input type="email" id="email" name="email" autocomplete="email" required maxlength="254" placeholder="E-postadressen din">
             <p class="field-error" id="email-error"></p>
           </div>
 
-          <div class="form-field">
-            <label for="phone">Telefon</label>
-            <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="20">
-            <p class="field-error" id="phone-error"></p>
+          <div class="payment-info">
+            <p><strong>Betalingsinformasjon</strong></p>
+            <p>Kontonummer: <strong>9522 07 06975</strong><br>
+            Senior: 400 NOK<br>
+            Junior (0&ndash;12 år): 300 NOK</p>
           </div>
 
           <div class="form-field">
-            <label for="address">Adresse</label>
-            <input type="text" id="address" name="address" autocomplete="street-address" maxlength="200">
+            <label for="fullName">Fullt navn *</label>
+            <input type="text" id="fullName" name="fullName" autocomplete="name" required maxlength="150" placeholder="Svaret ditt">
+            <p class="field-error" id="fullName-error"></p>
           </div>
 
-          <div class="form-row">
-            <div class="form-field form-field--small">
-              <label for="postalCode">Postnummer</label>
-              <input type="text" id="postalCode" name="postalCode" autocomplete="postal-code" inputmode="numeric" pattern="\d{4}" maxlength="4">
-              <p class="field-error" id="postalCode-error"></p>
-            </div>
-            <div class="form-field">
-              <label for="city">Poststed</label>
-              <input type="text" id="city" name="city" autocomplete="address-level2" maxlength="100">
-            </div>
+          <div class="form-field">
+            <label for="birthDate">Fødselsdato *</label>
+            <p class="field-help">Vi trenger fødselsdatoen for å gi deg mulighet til å bestille billetter, og for å skille mellom senior- og juniormedlemmer.</p>
+            <input type="date" id="birthDate" name="birthDate" autocomplete="bday" required>
+            <p class="field-error" id="birthDate-error"></p>
+          </div>
+
+          <div class="form-field">
+            <label for="address">Adresse *</label>
+            <p class="field-help">Vi trenger adressen for å sende medlemspakke.</p>
+            <input type="text" id="address" name="address" autocomplete="street-address" required maxlength="300" placeholder="Svaret ditt">
+            <p class="field-error" id="address-error"></p>
           </div>
 
           <!-- Honeypot: hidden from real users, bots often fill every field they find -->
@@ -111,7 +107,7 @@
           </div>
 
           <div class="form-actions">
-            <button type="submit" id="signup-submit">Meld meg inn</button>
+            <button type="submit" id="signup-submit">Send</button>
           </div>
         </form>
       </div>
@@ -163,7 +159,7 @@
       var submitButton = document.getElementById('signup-submit');
 
       var bannerMessages = {
-        ok: { text: 'Takk for at du meldte deg inn! Vi tar kontakt snart.', type: 'success' },
+        ok: { text: 'Takk for at du meldte deg inn! Husk å betale medlemskontingenten til kontonummer 9522 07 06975.', type: 'success' },
         error: { text: 'Noe gikk galt. Prøv igjen, eller kontakt oss om problemet vedvarer.', type: 'error' },
         duplicate: { text: 'Denne e-postadressen er allerede registrert.', type: 'error' }
       };
@@ -206,13 +202,10 @@
         var consentInput = document.getElementById('consent');
 
         var payload = {
-          firstName: formData.get('firstName') || '',
-          lastName: formData.get('lastName') || '',
+          fullName: formData.get('fullName') || '',
           email: formData.get('email') || '',
-          phone: formData.get('phone') || '',
+          birthDate: formData.get('birthDate') || '',
           address: formData.get('address') || '',
-          postalCode: formData.get('postalCode') || '',
-          city: formData.get('city') || '',
           consent: !!(consentInput && consentInput.checked),
           website: formData.get('website') || '',
           formRenderedAt: Number(formData.get('formRenderedAt')),
@@ -232,7 +225,7 @@
           .then(function (result) {
             if (result.ok) {
               form.hidden = true;
-              showBanner('Takk for at du meldte deg inn! Vi tar kontakt snart.', 'success');
+              showBanner('Takk for at du meldte deg inn! Husk å betale medlemskontingenten til kontonummer 9522 07 06975.', 'success');
               return;
             }
 

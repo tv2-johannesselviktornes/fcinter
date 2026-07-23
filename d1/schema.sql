@@ -3,13 +3,11 @@
 
 CREATE TABLE IF NOT EXISTS signups (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
+  full_name TEXT NOT NULL,
   email TEXT NOT NULL,
-  phone TEXT NOT NULL DEFAULT '',
-  address TEXT NOT NULL DEFAULT '',
-  postal_code TEXT NOT NULL DEFAULT '',
-  city TEXT NOT NULL DEFAULT '',
+  birth_date TEXT NOT NULL, -- ISO 8601 date (YYYY-MM-DD)
+  membership_type TEXT NOT NULL, -- 'junior' (0-12 aar) or 'senior', derived from birth_date
+  address TEXT NOT NULL,
   consent INTEGER NOT NULL DEFAULT 0,
   ip_hash TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))

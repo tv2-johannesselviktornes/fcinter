@@ -11,14 +11,13 @@ const RATE_LIMIT_MAX_REQUESTS = 5;
 const MIN_FORM_FILL_MS = 2000; // bots submit near-instantly
 
 const MAX_LENGTHS = {
-  firstName: 100,
-  lastName: 100,
+  fullName: 150,
   email: 254,
-  phone: 20,
-  address: 200,
-  postalCode: 10,
-  city: 100,
+  address: 300,
 };
+
+const MAX_AGE_YEARS = 120;
+const JUNIOR_MAX_AGE_YEARS = 12; // "Junior (0-12 aar)" per membership pricing
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -40,12 +39,27 @@ function isValidEmail(email) {
   );
 }
 
-function isValidPostalCode(code) {
-  return code === "" || /^\d{4}$/.test(code);
-}
+function parseBirthDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
 
-function isValidPhone(phone) {
-  return phone === "" || /^[0-9+\s()-]{6,20}$/.test(phone);
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  // Reject overflow dates like 2024-02-30 (JS Date normalizes them instead of erroring).
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    return null;
+  }
+
+  const now = new Date();
+  if (date.getTime() > now.getTime()) return null;
+
+  let age = now.getUTCFullYear() - date.getUTCFullYear();
+  const monthDiff = now.getUTCMonth() - date.getUTCMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getUTCDate() < date.getUTCDate())) {
+    age--;
+  }
+  if (age < 0 || age > MAX_AGE_YEARS) return null;
+
+  return { isoDate: value, age };
 }
 
 function sanitizeText(value, maxLength) {
@@ -102,23 +116,26 @@ async function checkRateLimit(db, ipHash) {
 }
 
 function validateFields(payload) {
-  const firstName = sanitizeText(payload.firstName, MAX_LENGTHS.firstName);
-  const lastName = sanitizeText(payload.lastName, MAX_LENGTHS.lastName);
+  const fullName = sanitizeText(payload.fullName, MAX_LENGTHS.fullName);
   const email = sanitizeText(payload.email, MAX_LENGTHS.email).toLowerCase();
-  const phone = sanitizeText(payload.phone, MAX_LENGTHS.phone);
   const address = sanitizeText(payload.address, MAX_LENGTHS.address);
-  const postalCode = sanitizeText(payload.postalCode, MAX_LENGTHS.postalCode);
-  const city = sanitizeText(payload.city, MAX_LENGTHS.city);
   const consent = payload.consent === true || payload.consent === "on" || payload.consent === "true";
+  const birthDate = parseBirthDate(typeof payload.birthDate === "string" ? payload.birthDate.trim() : "");
 
-  const fields = { firstName, lastName, email, phone, address, postalCode, city, consent };
+  const fields = {
+    fullName,
+    email,
+    address,
+    consent,
+    birthDate: birthDate ? birthDate.isoDate : "",
+    membershipType: birthDate ? (birthDate.age <= JUNIOR_MAX_AGE_YEARS ? "junior" : "senior") : "",
+  };
   const errors = {};
 
-  if (!firstName) errors.firstName = "Fornavn er påkrevd.";
-  if (!lastName) errors.lastName = "Etternavn er påkrevd.";
+  if (!fullName) errors.fullName = "Fullt navn er påkrevd.";
   if (!isValidEmail(email)) errors.email = "Gyldig e-postadresse er påkrevd.";
-  if (!isValidPhone(phone)) errors.phone = "Ugyldig telefonnummer.";
-  if (!isValidPostalCode(postalCode)) errors.postalCode = "Postnummer må bestå av 4 sifre.";
+  if (!birthDate) errors.birthDate = "Gyldig fødselsdato er påkrevd.";
+  if (!address) errors.address = "Adresse er påkrevd (brukes for å sende medlemspakken).";
   if (!consent) errors.consent = "Du må godta personvernvilkårene for å melde deg inn.";
 
   return { fields, errors };
@@ -220,17 +237,15 @@ export async function onRequestPost(context) {
   try {
     await env.DB.prepare(
       `INSERT INTO signups
-         (first_name, last_name, email, phone, address, postal_code, city, consent, ip_hash, created_at)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, datetime('now'))`
+         (full_name, email, birth_date, membership_type, address, consent, ip_hash, created_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, datetime('now'))`
     )
       .bind(
-        fields.firstName,
-        fields.lastName,
+        fields.fullName,
         fields.email,
-        fields.phone,
+        fields.birthDate,
+        fields.membershipType,
         fields.address,
-        fields.postalCode,
-        fields.city,
         fields.consent ? 1 : 0,
         ipHash
       )

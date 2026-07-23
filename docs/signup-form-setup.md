@@ -80,8 +80,17 @@ up the D1 binding and env vars.
 Visit `/` and submit the form. Check it landed in D1:
 
 ```sh
-npx wrangler d1 execute fcinter-signups --command "SELECT id, first_name, last_name, email, created_at FROM signups ORDER BY created_at DESC LIMIT 10" --remote
+npx wrangler d1 execute fcinter-signups --command "SELECT id, full_name, email, membership_type, created_at FROM signups ORDER BY created_at DESC LIMIT 10" --remote
 ```
+
+## Known difference from the old Google Form
+
+The Google Form emailed the submitter a copy of their answers on submit.
+The native form does **not** do this yet — it only writes to D1 and shows
+an on-page confirmation banner. Sending a confirmation email would need an
+outbound email provider (e.g. Cloudflare Email Workers, Resend, Postmark)
+and its own API key/DNS setup, which wasn't in scope here. Say the word if
+you want that added.
 
 ## Notes on the security model
 
