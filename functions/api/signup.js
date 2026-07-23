@@ -17,7 +17,7 @@ const MAX_LENGTHS = {
 };
 
 const MAX_AGE_YEARS = 120;
-const JUNIOR_MAX_AGE_YEARS = 12; // "Junior (0-12 aar)" per membership pricing
+const JUNIOR_MAX_AGE_YEARS = 12; // "Junior (0-12 år)" per membership pricing
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -113,6 +113,153 @@ async function checkRateLimit(db, ipHash) {
     .run();
 
   return row ? row.count <= RATE_LIMIT_MAX_REQUESTS : true;
+}
+
+const JMAP_USING = [
+  "urn:ietf:params:jmap:core",
+  "urn:ietf:params:jmap:mail",
+  "urn:ietf:params:jmap:submission",
+];
+
+async function jmapCall(apiUrl, token, methodCalls) {
+  const res = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ using: JMAP_USING, methodCalls }),
+  });
+  if (!res.ok) {
+    throw new Error(`JMAP request failed with status ${res.status}`);
+  }
+  const data = await res.json();
+  const resultsByCallId = {};
+  for (const [methodName, args, callId] of data.methodResponses) {
+    if (methodName === "error") {
+      throw new Error(`JMAP method error (${callId}): ${JSON.stringify(args)}`);
+    }
+    resultsByCallId[callId] = args;
+  }
+  return resultsByCallId;
+}
+
+function buildConfirmationEmailText(fields) {
+  const isJunior = fields.membershipType === "junior";
+  const membershipLabel = isJunior ? "Junior (0-12 år)" : "Senior";
+  const amount = isJunior ? "300 NOK" : "400 NOK";
+
+  return [
+    `Hei ${fields.fullName},`,
+    "",
+    "Takk for at du meldte deg inn i Inter Club Norvegia for sesongen 2026/27!",
+    "",
+    `Medlemskap: ${membershipLabel}`,
+    "",
+    "Betalingsinformasjon:",
+    "Kontonummer: 9522 07 06975",
+    `Beløp: ${amount}`,
+    "",
+    "Vi ser frem til å ha deg med i klubben!",
+    "",
+    "Hilsen Inter Club Norvegia",
+  ].join("\n");
+}
+
+// Sends a confirmation email via Fastmail's JMAP API (plain HTTPS calls,
+// no SMTP client needed). Optional: silently no-ops if FASTMAIL_API_TOKEN
+// isn't configured, and never throws — a Fastmail hiccup must never affect
+// the signup itself, which is already safely recorded in D1 by this point.
+async function sendConfirmationEmail(env, toEmail, fields) {
+  if (!env.FASTMAIL_API_TOKEN) return;
+
+  try {
+    const sessionRes = await fetch("https://api.fastmail.com/jmap/session", {
+      headers: { Authorization: `Bearer ${env.FASTMAIL_API_TOKEN}` },
+    });
+    if (!sessionRes.ok) {
+      throw new Error(`JMAP session request failed with status ${sessionRes.status}`);
+    }
+    const session = await sessionRes.json();
+    const accountId = session.primaryAccounts && session.primaryAccounts["urn:ietf:params:jmap:mail"];
+    const apiUrl = session.apiUrl;
+    if (!accountId || !apiUrl) {
+      throw new Error("JMAP session response missing accountId or apiUrl");
+    }
+
+    const lookup = await jmapCall(apiUrl, env.FASTMAIL_API_TOKEN, [
+      ["Identity/get", { accountId, ids: null }, "identities"],
+      ["Mailbox/get", { accountId, properties: ["id", "role"] }, "mailboxes"],
+    ]);
+
+    const identities = (lookup.identities && lookup.identities.list) || [];
+    const preferredFrom = (env.FASTMAIL_FROM_EMAIL || "").toLowerCase();
+    const identity =
+      identities.find((candidate) => candidate.email.toLowerCase() === preferredFrom) || identities[0];
+    if (!identity) {
+      throw new Error("No Fastmail identity available to send from");
+    }
+
+    const mailboxes = (lookup.mailboxes && lookup.mailboxes.list) || [];
+    const draftsId = (mailboxes.find((mailbox) => mailbox.role === "drafts") || {}).id;
+    const sentId = (mailboxes.find((mailbox) => mailbox.role === "sent") || {}).id;
+    if (!draftsId) {
+      throw new Error("No Drafts mailbox found on Fastmail account");
+    }
+
+    const submitMethodCalls = [
+      [
+        "Email/set",
+        {
+          accountId,
+          create: {
+            draft1: {
+              mailboxIds: { [draftsId]: true },
+              keywords: { $draft: true, $seen: true },
+              from: [{ email: identity.email, name: identity.name || "Inter Club Norvegia" }],
+              to: [{ email: toEmail }],
+              subject: "Bekreftelse: Innmelding Inter Club Norvegia 2026/27",
+              bodyValues: { body1: { value: buildConfirmationEmailText(fields), charset: "utf-8" } },
+              textBody: [{ partId: "body1", type: "text/plain" }],
+            },
+          },
+        },
+        "email",
+      ],
+      [
+        "EmailSubmission/set",
+        {
+          accountId,
+          create: {
+            sub1: {
+              emailId: "#draft1",
+              identityId: identity.id,
+            },
+          },
+          ...(sentId
+            ? {
+                onSuccessUpdateEmail: {
+                  "#sub1": {
+                    "keywords/$draft": null,
+                    [`mailboxIds/${draftsId}`]: null,
+                    [`mailboxIds/${sentId}`]: true,
+                  },
+                },
+              }
+            : { onSuccessDestroyEmail: ["#sub1"] }),
+        },
+        "submission",
+      ],
+    ];
+
+    const submitResult = await jmapCall(apiUrl, env.FASTMAIL_API_TOKEN, submitMethodCalls);
+    const submission = submitResult.submission;
+    if (submission && submission.notCreated && submission.notCreated.sub1) {
+      throw new Error(`EmailSubmission/set rejected: ${JSON.stringify(submission.notCreated.sub1)}`);
+    }
+  } catch (err) {
+    console.error("Fastmail confirmation email failed", err);
+  }
 }
 
 function validateFields(payload) {
@@ -267,6 +414,10 @@ export async function onRequestPost(context) {
     }
     return jsonResponse({ error: "Noe gikk galt. Prøv igjen senere." }, 500);
   }
+
+  // Runs after the response is sent — a slow or failed email must never
+  // delay or fail the signup itself, which is already safely in D1.
+  context.waitUntil(sendConfirmationEmail(env, fields.email, fields));
 
   if (!isJson) {
     return Response.redirect(`${allowedOrigin}/?signup=ok`, 303);

@@ -69,28 +69,46 @@ Production and Preview as appropriate:
 | `TURNSTILE_SECRET_KEY` | secret from step 4 | mark as secret |
 | `IP_HASH_SALT` | a long random string, e.g. output of `openssl rand -hex 32` | mark as secret. Used to hash submitter IPs before storing them — never store raw IPs. Required; the function returns 500 without it. |
 | `ALLOWED_ORIGIN` | `https://fcinter.no` | used for the same-origin check and no-JS redirect fallback |
+| `FASTMAIL_API_TOKEN` | Fastmail JMAP API token from step 6 | optional, mark as secret |
+| `FASTMAIL_FROM_EMAIL` | e.g. `medlem@fcinter.no` | optional; must match an existing Fastmail Identity |
 
-## 6. Deploy
+## 6. Set up the Fastmail confirmation email (optional)
+
+On successful signup, the Function sends the submitter a confirmation email
+via Fastmail's JMAP API (plain HTTPS calls — no SMTP client dependency). This
+step is optional: if `FASTMAIL_API_TOKEN` isn't set, this is silently
+skipped and everything else still works.
+
+1. In Fastmail: **Settings → Privacy & Security → Integrations → API tokens**
+   → create a new token scoped for **Mail** (JMAP) access — read/write, since
+   sending mail requires `EmailSubmission` and `Email` write access.
+2. Add it as a Pages secret:
+   **Pages project → Settings → Environment variables → Add variable**
+   - Name: `FASTMAIL_API_TOKEN`, mark it "Encrypt"
+3. Add the sending address as a second variable:
+   - Name: `FASTMAIL_FROM_EMAIL`
+   - Value: the Fastmail mailbox address to send from (must match an
+     existing **Identity** on that Fastmail account — check
+     **Settings → Identities**). If unset, the function falls back to the
+     account's first identity.
+
+The confirmation is sent as plain text (name, membership type — Senior or
+Junior, derived from the birth date — and the payment info) and a copy is
+filed in the Fastmail account's Sent folder (or discarded if no Sent
+mailbox is found).
+
+## 7. Deploy
 
 Commit/push as usual (or redeploy from the dashboard) so the Function picks
 up the D1 binding and env vars.
 
-## 7. Test
+## 8. Test
 
 Visit `/` and submit the form. Check it landed in D1:
 
 ```sh
 npx wrangler d1 execute fcinter-signups --command "SELECT id, full_name, email, membership_type, created_at FROM signups ORDER BY created_at DESC LIMIT 10" --remote
 ```
-
-## Known difference from the old Google Form
-
-The Google Form emailed the submitter a copy of their answers on submit.
-The native form does **not** do this yet — it only writes to D1 and shows
-an on-page confirmation banner. Sending a confirmation email would need an
-outbound email provider (e.g. Cloudflare Email Workers, Resend, Postmark)
-and its own API key/DNS setup, which wasn't in scope here. Say the word if
-you want that added.
 
 ## Notes on the security model
 
