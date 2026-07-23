@@ -195,6 +195,138 @@
       overflow: auto;
     }
     
+    /* Native signup form */
+    .signup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      margin-top: 2rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1.1rem;
+    }
+
+    .form-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .form-field--small {
+      flex: 0 0 8rem;
+    }
+
+    .form-field label {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .form-field input[type="text"],
+    .form-field input[type="email"],
+    .form-field input[type="tel"] {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      border-radius: 4px;
+      background-color: #fff;
+      color: #111111;
+    }
+
+    .form-field input:focus {
+      outline: 2px solid #111111;
+      outline-offset: 1px;
+    }
+
+    .form-field--checkbox label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      font-weight: 400;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .form-field--checkbox input[type="checkbox"] {
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .field-error {
+      color: #b3261e;
+      font-size: 0.82rem;
+      margin: 0;
+      min-height: 1em;
+    }
+
+    .form-actions {
+      margin-top: 0.5rem;
+    }
+
+    .form-actions button {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.75rem 1.75rem;
+      background-color: #111111;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .form-actions button:hover {
+      background-color: #333333;
+    }
+
+    .form-actions button:disabled {
+      background-color: #999999;
+      cursor: not-allowed;
+    }
+
+    .form-banner {
+      padding: 0.9rem 1.1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .form-banner--success {
+      background-color: #e6f4ea;
+      color: #1e4620;
+      border: 1px solid #b7dfc0;
+    }
+
+    .form-banner--error {
+      background-color: #fdecea;
+      color: #611a15;
+      border: 1px solid #f5c6c2;
+    }
+
+    /* Honeypot field: hidden from sighted users and screen readers,
+       but present in the DOM for bots that fill in every field. */
+    .hp-field {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        flex-direction: column;
+      }
+
+      .form-field--small {
+        flex: 1;
+      }
+    }
+
     /* Responsive navigation */
     @media (max-width: 768px) {
       .site-header {

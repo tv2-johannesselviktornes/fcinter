@@ -9,6 +9,7 @@
   <link rel="icon" href="/bilder/logo-100x100.png" sizes="32x32">
   <link rel="icon" href="/bilder/logo-300x300.png" sizes="192x192">
   <link rel="apple-touch-icon" href="/bilder/logo-300x300.png">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
   
 <body>
@@ -42,7 +43,78 @@
     
     <main>
       <div class="content">
-        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScu0aWY9VbeIbfI5PSj-_LFco2qlqowlHz2Y1pcaiPBr_D-Bw/viewform?embedded=true" width="640" height="1363" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>      </div>
+        <h1>Bli medlem</h1>
+
+        <div id="signup-banner" class="form-banner" hidden></div>
+
+        <form id="signup-form" class="signup-form" action="/api/signup" method="post" novalidate>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="firstName">Fornavn *</label>
+              <input type="text" id="firstName" name="firstName" autocomplete="given-name" required maxlength="100">
+              <p class="field-error" id="firstName-error"></p>
+            </div>
+            <div class="form-field">
+              <label for="lastName">Etternavn *</label>
+              <input type="text" id="lastName" name="lastName" autocomplete="family-name" required maxlength="100">
+              <p class="field-error" id="lastName-error"></p>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="email">E-post *</label>
+            <input type="email" id="email" name="email" autocomplete="email" required maxlength="254">
+            <p class="field-error" id="email-error"></p>
+          </div>
+
+          <div class="form-field">
+            <label for="phone">Telefon</label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" maxlength="20">
+            <p class="field-error" id="phone-error"></p>
+          </div>
+
+          <div class="form-field">
+            <label for="address">Adresse</label>
+            <input type="text" id="address" name="address" autocomplete="street-address" maxlength="200">
+          </div>
+
+          <div class="form-row">
+            <div class="form-field form-field--small">
+              <label for="postalCode">Postnummer</label>
+              <input type="text" id="postalCode" name="postalCode" autocomplete="postal-code" inputmode="numeric" pattern="\d{4}" maxlength="4">
+              <p class="field-error" id="postalCode-error"></p>
+            </div>
+            <div class="form-field">
+              <label for="city">Poststed</label>
+              <input type="text" id="city" name="city" autocomplete="address-level2" maxlength="100">
+            </div>
+          </div>
+
+          <!-- Honeypot: hidden from real users, bots often fill every field they find -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="website">Ikke fyll ut dette feltet</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <input type="hidden" name="formRenderedAt" id="formRenderedAt" value="">
+
+          <div class="form-field">
+            <div class="cf-turnstile" data-sitekey="0x0000000000000000000000AA" data-theme="light"></div>
+          </div>
+
+          <div class="form-field form-field--checkbox">
+            <label>
+              <input type="checkbox" id="consent" name="consent" required>
+              Jeg samtykker til at Inter Club Norvegia lagrer opplysningene ovenfor for å administrere medlemskapet mitt. Jeg kan når som helst be om innsyn, retting eller sletting ved å kontakte klubben. *
+            </label>
+            <p class="field-error" id="consent-error"></p>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="signup-submit">Meld meg inn</button>
+          </div>
+        </form>
+      </div>
     </main>
     
     <footer>
@@ -73,6 +145,110 @@
             menuToggle.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
         });
       }
+    });
+  </script>
+
+  <!-- Native signup form submission (join page only) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('signup-form');
+      if (!form) return;
+
+      var renderedAtField = document.getElementById('formRenderedAt');
+      if (renderedAtField) {
+        renderedAtField.value = Date.now();
+      }
+
+      var banner = document.getElementById('signup-banner');
+      var submitButton = document.getElementById('signup-submit');
+
+      var bannerMessages = {
+        ok: { text: 'Takk for at du meldte deg inn! Vi tar kontakt snart.', type: 'success' },
+        error: { text: 'Noe gikk galt. Prøv igjen, eller kontakt oss om problemet vedvarer.', type: 'error' },
+        duplicate: { text: 'Denne e-postadressen er allerede registrert.', type: 'error' }
+      };
+
+      function showBanner(text, type) {
+        if (!banner) return;
+        banner.textContent = text;
+        banner.className = 'form-banner form-banner--' + type;
+        banner.hidden = false;
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      var signupStatus = params.get('signup');
+      if (signupStatus && bannerMessages[signupStatus]) {
+        showBanner(bannerMessages[signupStatus].text, bannerMessages[signupStatus].type);
+        if (signupStatus === 'ok') {
+          form.hidden = true;
+        }
+      }
+
+      function clearFieldErrors() {
+        var errorEls = form.querySelectorAll('.field-error');
+        errorEls.forEach(function (el) { el.textContent = ''; });
+      }
+
+      function showFieldErrors(fieldErrors) {
+        Object.keys(fieldErrors).forEach(function (name) {
+          var errorEl = document.getElementById(name + '-error');
+          if (errorEl) errorEl.textContent = fieldErrors[name];
+        });
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        clearFieldErrors();
+        if (banner) banner.hidden = true;
+        if (submitButton) submitButton.disabled = true;
+
+        var formData = new FormData(form);
+        var consentInput = document.getElementById('consent');
+
+        var payload = {
+          firstName: formData.get('firstName') || '',
+          lastName: formData.get('lastName') || '',
+          email: formData.get('email') || '',
+          phone: formData.get('phone') || '',
+          address: formData.get('address') || '',
+          postalCode: formData.get('postalCode') || '',
+          city: formData.get('city') || '',
+          consent: !!(consentInput && consentInput.checked),
+          website: formData.get('website') || '',
+          formRenderedAt: Number(formData.get('formRenderedAt')),
+          turnstileToken: formData.get('cf-turnstile-response') || ''
+        };
+
+        fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(function (response) {
+            return response.json().then(function (data) {
+              return { ok: response.ok, data: data };
+            });
+          })
+          .then(function (result) {
+            if (result.ok) {
+              form.hidden = true;
+              showBanner('Takk for at du meldte deg inn! Vi tar kontakt snart.', 'success');
+              return;
+            }
+
+            if (result.data && result.data.fields) {
+              showFieldErrors(result.data.fields);
+            }
+            showBanner((result.data && result.data.error) || 'Noe gikk galt. Prøv igjen.', 'error');
+            if (submitButton) submitButton.disabled = false;
+            if (window.turnstile) window.turnstile.reset();
+          })
+          .catch(function () {
+            showBanner('Kunne ikke sende inn skjemaet. Sjekk internettforbindelsen og prøv igjen.', 'error');
+            if (submitButton) submitButton.disabled = false;
+            if (window.turnstile) window.turnstile.reset();
+          });
+      });
     });
   </script>
 </body>
